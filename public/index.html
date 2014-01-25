@@ -1,0 +1,94 @@
+<html>
+<script src="/socket.io/socket.io.js"> </script>
+  <script>
+    //use http://raspberryPi.local if your using Avahi Service 
+        //or use your RasperryPi IP instead
+        var socket = io.connect('http://127.0.0.1:8080');
+    socket.on('connect', function(data){
+      // socket.emit('screen');
+    });
+    
+    socket.on('message', function(data){
+      
+    })
+</script>
+
+<link href="css/nv.d3.css" rel="stylesheet" type="text/css">
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="/js/nv.d3.min.js"></script>
+
+
+<body>
+    <svg style='height:600px'/>
+
+    <script>
+    var chart;
+    
+      nv.addGraph(function() {  
+        chart = nv.models.lineChart();
+ 
+        chart.xAxis
+          .axisLabel('Time (ms)')
+          .tickFormat(d3.format(',r'));
+ 
+        chart.yAxis
+          .axisLabel('Voltage (v)')
+          .tickFormat(d3.format('.02f'));
+ 
+        d3.select('svg')
+          .datum(sinAndCos())
+          .transition().duration(500)
+          .call(chart);
+ 
+        nv.utils.windowResize(function() { d3.select('svg').call(chart) });
+ 
+        return chart;
+      });
+ 
+ 
+      function redraw() {
+        d3.select('svg')
+          .datum(sinAndCos())
+          .transition().duration(500)
+          .call(chart);
+        }
+
+        var interval = 0;
+
+
+      /**************************************
+      * Simple test data generator
+      */
+       
+      function sinAndCos() {
+        var sin = [],
+        cos = [];
+ 
+        for (var i = 0; i < 100; i++) {
+          var datai = (i + interval) % 100;
+          sin.push({x: i, y: Math.sin(i/10)});
+          cos.push({x: i, y: .5 * Math.cos(i/10)});
+        }
+        
+        interval = interval + 1;
+ 
+        return [
+        {
+          values: sin,
+          key: 'Sine Wave',
+          color: '#ff7f0e'
+        },
+        {
+          values: cos,
+          key: 'Cosine Wave',
+          color: '#2ca02c'
+        }
+        ];
+      }
+      
+      setInterval(function () {
+        redraw();
+      }, 1000);
+      </script>
+</body>
+</html>
