@@ -11,30 +11,10 @@ var express = require('express')
   
   
   
-  // TODO: Why is serialport.list not returning anything on raspberry pi?
-  var serialPort = new SerialPort('/dev/ttyACM0', {
-      baudrate: 9600,
-      parser: serialport.parsers.readline("\n")
-    }, false);
-            
-    serialPort.open(function () {
-        console.log('serial open');
-    });
-    // serialPort.on('data', function(data) {
-//         console.log('data received: ' + data);
-//       
-//         var dataDate = new Date()
-//         var dataPoints = data.split(",")
-//         io.sockets.emit('dataUpdate',{
-//             date: dataDate,
-//             light: dataPoints[2].split(":")[1],
-//             temp1: dataPoints[3].split(":")[1],
-//             temp2: dataPoints[4].split(":")[1]
-//         })
-//     });
+  var serialPort = null
   serialport.list(function (err, ports) {
     ports.forEach(function(port) {
-        if (typeof port.manufacturer != 'undefined' && port.manufacturer.indexOf("Arduino") != -1 && serialPort == null) {
+        if (typeof port.pnpId != 'undefined' && port.pnpId.indexOf("Arduino") != -1 && serialPort == null) {
             serialPort = new SerialPort(port.comName, {
                 baudrate: 9600,
                 parser: serialport.parsers.readline("\n")
