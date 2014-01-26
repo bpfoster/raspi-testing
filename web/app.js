@@ -1,9 +1,15 @@
+
+// var serialPort = new SerialPort("/dev/tty-usbserial1", {
+//   baudrate: 57600
+// });
+
 var express = require('express')
   , app = express()  
   , server = require('http').createServer(app)
   , path = require('path')
   , io = require('socket.io').listen(server)
   , spawn = require('child_process').spawn
+  , SerialPort = require("serialport").SerialPort
 
   
 //Socket.io Config
@@ -21,10 +27,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', function (req, res) {
   res.sendfile(__dirname + '/public/index.html');
 });
-
-app.get('/remote', function (req, res) {
-  res.sendfile(__dirname + '/public/remote.html');
-});
+// 
+// app.get('/remote', function (req, res) {
+//   res.sendfile(__dirname + '/public/remote.html');
+// });
 
 server.listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
