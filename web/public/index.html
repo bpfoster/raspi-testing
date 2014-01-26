@@ -27,6 +27,7 @@
       
     
     
+    var chartBuffer = 0.10
     var maxLength = 200
     var data1 = []
     var data2 = []
@@ -44,6 +45,18 @@
       if (data3.length > maxLength)
         data3.shift()
         
+      var d1minMax = findMinMax(data1)
+      var d2minMax = findMinMax(data2)
+      var d3minMax = findMinMax(data3)
+      var y1min = Math.min(d1minMax.min, d2minMax.min)
+      var y1max = Math.max(d1minMax.max, d2minMax.max)
+      var y1buffer = (y1max - y1min) * chartBuffer
+      y1min = y1min - y1buffer
+      y1max = y1max + y1buffer
+      var y2buffer = (d3minMax.max - d3minMax.min) * chartBuffer
+      var y2min = d3minMax.min - y2buffer
+      var y2max = d3minMax.max + y2buffer
+        
         redraw([{
           values: data1,
           key: "Temp 1",
@@ -59,7 +72,7 @@
           key: "Light",
           yAxis: 2,
           type: "line"
-        }])
+        }], {min: y1min, max: y1max},{min: y2min, max: y2max})
     });
     
     
@@ -84,7 +97,7 @@
         .tickFormat(d3.format(',r'));
           
       chart.yDomain1([40,100])
-      chart.yDomain2([540, 1000])
+      chart.yDomain2([120, 1000])
           
       chart.options({
         showControls: true,
@@ -105,11 +118,28 @@
     });
  
  
-    function redraw(datum) {
+    function redraw(datum, y1minMax, y2minMax) {
+      chart.yDomain1([y1minMax.min, y1minMax.max])
+      chart.yDomain2([y2MinMax.min, y2MinMax.max])
+      
       d3.select('#chart1 svg')
         .datum(datum)
         .transition().duration(50)
         .call(chart);
+    }
+    
+    function findMinMax(dataPoints) {
+      var min = Number.MAX_VALUE;
+      var max = Number.MIN_VALUE;
+      dataPoints.forEach(function(elem){
+        min = Math.min(elem.y, min)
+        max = Math.max(elem.y, max)
+      })
+      
+      return {
+        min: min,
+        max: max
+      }
     }
   </script>
 </body>
