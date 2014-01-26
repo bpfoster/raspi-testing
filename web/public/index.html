@@ -20,7 +20,8 @@
 </div>
 
 <script>
-    var socket = io.connect('http://127.0.0.1:8080');
+    var socketAddr = window.location.protocol + "//" + window.location.host
+    var socket = io.connect(socketAddr);
     socket.on('connect', function(data){
     });
       
