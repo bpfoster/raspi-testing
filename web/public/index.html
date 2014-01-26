@@ -26,7 +26,8 @@
     });
       
     
-    
+    var y1AxisDefaultDomain = {min: 40, max: 100}
+    var y2AxisDefaultDomain = {min: 50, max: 1000}
     var chartBuffer = 0.10
     var maxLength = 200
     var data1 = []
@@ -51,11 +52,11 @@
       var y1min = Math.min(d1minMax.min, d2minMax.min)
       var y1max = Math.max(d1minMax.max, d2minMax.max)
       var y1buffer = (y1max - y1min) * chartBuffer
-      y1min = y1min - y1buffer
-      y1max = y1max + y1buffer
+      y1min = Math.min(y1AxisDefaultDomain.min, y1min - y1buffer)
+      y1max = Math.max(y1AxisDefaultDomain.max, y1max + y1buffer)
       var y2buffer = (d3minMax.max - d3minMax.min) * chartBuffer
-      var y2min = d3minMax.min - y2buffer
-      var y2max = d3minMax.max + y2buffer
+      var y2min = Math.min(y2AxisDefaultDomain.min, d3minMax.min - y2buffer)
+      var y2max = Math.max(y2AxisDefaultDomain.max, d3minMax.max + y2buffer)
         
         redraw([{
           values: data1,
@@ -90,14 +91,17 @@
  
       chart.yAxis1
         .axisLabel('Temperature')
-        .tickFormat(d3.format(',r'));
+        .tickFormat(d3.format(',1r'));
         
       chart.yAxis2
         .axisLabel("Light")
         .tickFormat(d3.format(',r'));
           
-      chart.yDomain1([40,100])
-      chart.yDomain2([120, 1000])
+      // chart.yDomain1([40,100])
+      // chart.yDomain2([120, 1000])
+      
+      chart.margin({left: 75, right: 75, top:0, bottom: 50})
+      chart.yAxis1.axisLabelDistance(20)
           
       chart.options({
         showControls: true,
