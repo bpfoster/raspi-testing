@@ -120,7 +120,7 @@
  
     function redraw(datum, y1minMax, y2minMax) {
       chart.yDomain1([y1minMax.min, y1minMax.max])
-      chart.yDomain2([y2MinMax.min, y2MinMax.max])
+      chart.yDomain2([y2minMax.min, y2minMax.max])
       
       d3.select('#chart1 svg')
         .datum(datum)
