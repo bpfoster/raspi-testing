@@ -1,16 +1,7 @@
 <html>
 <script src="/socket.io/socket.io.js"> </script>
-  <script>
-    //use http://raspberryPi.local if your using Avahi Service 
-        //or use your RasperryPi IP instead
-        var socket = io.connect('http://127.0.0.1:8080');
-    socket.on('connect', function(data){
-      // socket.emit('screen');
-    });
-    
-    socket.on('message', function(data){
-      
-    })
+<script>
+   
 </script>
 
 <link href="css/nv.d3.css" rel="stylesheet" type="text/css">
@@ -19,76 +10,77 @@
 
 
 <body>
-    <svg style='height:600px'/>
+  <div>
+    <div id='chart1'>
+      <svg style='height:400px'/>
+    </div>
+    <div id='chart2'>
+      <svg style='height:400px'/>
+    </div>
+</div>
 
-    <script>
+<script>
+    var socket = io.connect('http://127.0.0.1:8080');
+    socket.on('connect', function(data){
+    });
+    
+    socket.on('data', function(data){
+      var dataToUse = []
+      for(var i = 0; i < data.data.length; i++) {
+        dataToUse[i] = {
+          x: new Date(data.data[i]['x']),
+          y: data.data[i]['y']
+        }
+      }
+      redraw( [{
+        values: dataToUse,
+        key: "Temperature"
+      }] );
+    })
+    
+    
     var chart;
     
-      nv.addGraph(function() {  
-        chart = nv.models.lineChart();
+    nv.addGraph(function() {  
+      chart = nv.models.lineChart();
  
-        chart.xAxis
-          .axisLabel('Time (ms)')
-          .tickFormat(d3.format(',r'));
+      chart.xAxis
+        .axisLabel('Date')
+        .tickFormat(function(d) {
+          return d3.time.format('%H:%M')(new Date(d));
+        });
  
-        chart.yAxis
-          .axisLabel('Voltage (v)')
-          .tickFormat(d3.format('.02f'));
- 
-        d3.select('svg')
-          .datum(sinAndCos())
-          .transition().duration(500)
-          .call(chart);
- 
-        nv.utils.windowResize(function() { d3.select('svg').call(chart) });
- 
-        return chart;
-      });
- 
- 
-      function redraw() {
-        d3.select('svg')
-          .datum(sinAndCos())
-          .transition().duration(500)
-          .call(chart);
-        }
+      chart.yAxis
+        .axisLabel('Temperature')
+        .tickFormat(d3.format(',r'));
+          
+      chart.forceY([40,100])
+          
+      chart.options({
+        showControls: true,
+        showLegend: true
+      })
+          // chart.interpolate('step-before ')
 
-        var interval = 0;
-
-
-      /**************************************
-      * Simple test data generator
-      */
-       
-      function sinAndCos() {
-        var sin = [],
-        cos = [];
  
-        for (var i = 0; i < 100; i++) {
-          var datai = (i + interval) % 100;
-          sin.push({x: i, y: Math.sin(i/10)});
-          cos.push({x: i, y: .5 * Math.cos(i/10)});
-        }
-        
-        interval = interval + 1;
+      d3.select('svg')
+        .datum([])
+        .transition().duration(500)
+        .call(chart);
+
  
-        return [
-        {
-          values: sin,
-          key: 'Sine Wave',
-          color: '#ff7f0e'
-        },
-        {
-          values: cos,
-          key: 'Cosine Wave',
-          color: '#2ca02c'
-        }
-        ];
-      }
-      
-      setInterval(function () {
-        redraw();
-      }, 1000);
-      </script>
+      nv.utils.windowResize(function() { d3.select('svg').call(chart) });
+
+      return chart;
+    });
+ 
+ 
+    function redraw(datum) {
+      d3.select('svg')
+        .datum(datum)
+        .transition().duration(50)
+        .call(chart);
+    }
+  </script>
 </body>
 </html>

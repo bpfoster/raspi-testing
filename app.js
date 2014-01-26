@@ -33,12 +33,37 @@ server.listen(app.get('port'), function(){
 
 
 
-
 io.sockets.on('connection', function (socket) {
-    console.log('Connection made')
-    // socket.emit('message', { message: 'welcome to the chat' });
-    // socket.on('send', function (data) {
-    //     //Emit to all
-    //     io.sockets.emit('message', data);
-    // });
+    socket.emit('data',{'data': stuffData})
+    
+    
+    setInterval(function () {
+      var date = new Date()
+      var temp = Math.floor(Math.random() * (max - min + 1)) + min
+  
+      stuffData.shift()
+      stuffData.push({x: date, y: temp})
+      socket.emit('data',{'data': stuffData})
+    }, 10000);
 });
+
+
+
+
+
+//////////////////
+
+
+var stuffData = []
+var max = 65;
+var min = 50;
+
+// function seedStuff() {
+  var points = 60;
+  
+  var now = new Date()
+  for (var i = 0; i < points; i++) {
+    stuffData.unshift({x: new Date(now.getTime() - (i * 60000)), y: Math.floor(Math.random() * (max - min + 1)) + min})
+  }
+// }
+
