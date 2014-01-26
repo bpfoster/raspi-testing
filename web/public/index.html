@@ -58,7 +58,7 @@
       var y2min = Math.min(y2AxisDefaultDomain.min, d3minMax.min - y2buffer)
       var y2max = Math.max(y2AxisDefaultDomain.max, d3minMax.max + y2buffer)
         
-        redraw([{
+      redraw([{
           values: data1,
           key: "Temp 1",
           yAxis: 1,
@@ -97,8 +97,8 @@
         .axisLabel("Light")
         .tickFormat(d3.format(',r'));
           
-      // chart.yDomain1([40,100])
-      // chart.yDomain2([120, 1000])
+      chart.yDomain1([y1AxisDefaultDomain.min,y1AxisDefaultDomain.max])
+      chart.yDomain2([y2AxisDefaultDomain.min, y2AxisDefaultDomain.max])
       
       chart.margin({left: 75, right: 75, top:0, bottom: 50})
       chart.yAxis1.axisLabelDistance(20)
@@ -107,7 +107,7 @@
         showControls: true,
         showLegend: true
       })
-          // chart.interpolate('step-before ')
+      chart.interpolate('step-before ')
 
  
       d3.select('#chart1 svg')
