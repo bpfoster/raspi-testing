@@ -9,22 +9,50 @@ var express = require('express')
   , serialport = require("serialport")
   , SerialPort = serialport.SerialPort
   
-
-  var serialPort = new SerialPort("/dev/tty.usbmodem1431", {
-    baudrate: 9600,
-    parser: serialport.parsers.readline("\n")
-  }, false);
   
-serialPort.open(function () {
-    console.log('serial open');
-    // serialPort.on('data', function(data) {
-//       console.log('data received: ' + data);
-//     });
-    // serialPort.write("ls\n", function(err, results) {
-    //   console.log('err ' + err);
-    //   console.log('results ' + results);
-    // });
+  
+  var serialPort = null
+  serialport.list(function (err, ports) {
+    ports.forEach(function(port) {
+        if (port.manufacturer.indexOf("Arduino") != -1 && serialPort == null) {
+            serialPort = new SerialPort(port.comName, {
+                baudrate: 9600,
+                parser: serialport.parsers.readline("\n")
+            }, false);
+            
+            serialPort.open(function () {
+                console.log('serial open');
+            });
+            serialPort.on('data', function(data) {
+              console.log('data received: ' + data);
+      
+              var dataDate = new Date()
+              var dataPoints = data.split(",")
+              io.sockets.emit('dataUpdate',{
+                  date: dataDate,
+                  light: dataPoints[2].split(":")[1],
+                  temp1: dataPoints[3].split(":")[1],
+                  temp2: dataPoints[4].split(":")[1]
+              })
+            });
+        }
+    });
+    if (serialPort == null) {
+        throw "No Arduino Found!"
+    }
   });
+  
+  
+// serialPort.open(function () {
+//     console.log('serial open');
+//     // serialPort.on('data', function(data) {
+// //       console.log('data received: ' + data);
+// //     });
+//     // serialPort.write("ls\n", function(err, results) {
+//     //   console.log('err ' + err);
+//     //   console.log('results ' + results);
+//     // });
+//   });
 
   
 //Socket.io Config
@@ -55,49 +83,6 @@ server.listen(app.get('port'), function(){
 
 
 io.sockets.on('connection', function (socket) {
-    // socket.emit('data',{'data': stuffData})
-    
-    
-    // setInterval(function () {
-    //   var date = new Date()
-    //   var temp = Math.floor(Math.random() * (max - min + 1)) + min
-    //   
-    //   stuffData.shift()
-    //   stuffData.push({x: date, y: temp})
-    //   socket.emit('data',{'data': stuffData})
-    // }, 10000);
-    
-    serialPort.on('data', function(data) {
-      console.log('data received: ' + data);
-      
-      var dataDate = new Date()
-      var dataPoints = data.split(",")
-      socket.emit('dataUpdate',{
-          date: dataDate,
-          light: dataPoints[2].split(":")[1],
-          temp1: dataPoints[3].split(":")[1],
-          temp2: dataPoints[4].split(":")[1]
-      })
-    });
+
 });
-
-
-
-
-
-//////////////////
-
-
-var stuffData = []
-var max = 65;
-var min = 50;
-
-// function seedStuff() {
-  var points = 60;
-  
-  var now = new Date()
-  for (var i = 0; i < points; i++) {
-    stuffData.unshift({x: new Date(now.getTime() - (i * 60000)), y: Math.floor(Math.random() * (max - min + 1)) + min})
-  }
-// }
 

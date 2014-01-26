@@ -23,24 +23,10 @@
     var socket = io.connect('http://127.0.0.1:8080');
     socket.on('connect', function(data){
     });
-    
-    socket.on('data', function(data){
-      var dataToUse = []
-      for(var i = 0; i < data.data.length; i++) {
-        dataToUse[i] = {
-          x: new Date(data.data[i]['x']),
-          y: data.data[i]['y']
-        }
-      }
-      redraw( [{
-        values: dataToUse,
-        key: "Temperature"
-      }] );
-    });
+      
     
     
-    
-    var maxLength = 20
+    var maxLength = 200
     var data1 = []
     var data2 = []
     var data3 = []
@@ -106,20 +92,20 @@
           // chart.interpolate('step-before ')
 
  
-      d3.select('svg')
+      d3.select('#chart1 svg')
         .datum([])
         .transition().duration(500)
         .call(chart);
 
  
-      nv.utils.windowResize(function() { d3.select('svg').call(chart) });
+      nv.utils.windowResize(function() { d3.select('#chart1 svg').call(chart) });
 
       return chart;
     });
  
  
     function redraw(datum) {
-      d3.select('svg')
+      d3.select('#chart1 svg')
         .datum(datum)
         .transition().duration(50)
         .call(chart);
