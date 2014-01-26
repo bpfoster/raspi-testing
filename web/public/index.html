@@ -36,13 +36,51 @@
         values: dataToUse,
         key: "Temperature"
       }] );
-    })
+    });
+    
+    
+    
+    var maxLength = 20
+    var data1 = []
+    var data2 = []
+    var data3 = []
+    socket.on('dataUpdate', function(data){
+      var date = new Date(data.date);
+      
+      data1.push({x: date, y: data.temp1})
+      data2.push({x: date, y: data.temp2})
+      data3.push({x: date, y: data.light})
+      if (data1.length > maxLength)
+        data1.shift()
+      if (data2.length > maxLength)
+        data2.shift()
+      if (data3.length > maxLength)
+        data3.shift()
+        
+        redraw([{
+          values: data1,
+          key: "Temp 1",
+          yAxis: 1,
+          type: "line"
+        },{
+          values: data2,
+          key: "Temp 2",
+          yAxis: 1,
+          type: "line"
+        },{
+          values: data3,
+          key: "Light",
+          yAxis: 2,
+          type: "line"
+        }])
+    });
     
     
     var chart;
     
     nv.addGraph(function() {  
-      chart = nv.models.lineChart();
+//      chart = nv.models.lineChart();
+      chart = nv.models.multiChart();
  
       chart.xAxis
         .axisLabel('Date')
@@ -50,11 +88,16 @@
           return d3.time.format('%H:%M')(new Date(d));
         });
  
-      chart.yAxis
+      chart.yAxis1
         .axisLabel('Temperature')
         .tickFormat(d3.format(',r'));
+        
+      chart.yAxis2
+        .axisLabel("Light")
+        .tickFormat(d3.format(',r'));
           
-      chart.forceY([40,100])
+      chart.yDomain1([40,100])
+      chart.yDomain2([540, 1000])
           
       chart.options({
         showControls: true,

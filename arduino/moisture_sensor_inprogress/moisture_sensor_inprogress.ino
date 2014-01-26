@@ -7,10 +7,10 @@
 #define sensorPin1 0
 #define sensorPin2 1
 #define ldrPin 2
-#define tempPin 3
+
 
 // Data wire is plugged into pin 2 on the Arduino
-#define ONE_WIRE_BUS 7
+#define ONE_WIRE_BUS 2
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
@@ -28,10 +28,10 @@ int sleep = 1000 * 10;
 
 void setup(){
   Serial.begin(9600);
-  pinMode(voltageFlipPin1, OUTPUT);
-  pinMode(voltageFlipPin2, OUTPUT);
-  pinMode(sensorPin1, INPUT);
-  pinMode(sensorPin2, INPUT);
+//  pinMode(voltageFlipPin1, OUTPUT);
+//  pinMode(voltageFlipPin2, OUTPUT);
+//  pinMode(sensorPin1, INPUT);
+//  pinMode(sensorPin2, INPUT);
   
   pinMode(led, OUTPUT);
   digitalWrite(led, LOW);
@@ -64,31 +64,29 @@ void loop(){
   //
   digitalWrite(led, HIGH);
   
-  setSensorPolarity(true);
-  delay(flipTimer);
-  int val11 = analogRead(sensorPin1);
-  int val21 = analogRead(sensorPin2);
-  delay(flipTimer);  
-  setSensorPolarity(false);
-  delay(flipTimer);
-  // invert the reading
-  int val12 = 1023 - analogRead(sensorPin1);
-  int val22 = 1023 - analogRead(sensorPin2);
+//  setSensorPolarity(true);
+//  delay(flipTimer);
+//  int val11 = analogRead(sensorPin1);
+//  int val21 = analogRead(sensorPin2);
+//  delay(flipTimer);  
+//  setSensorPolarity(false);
+//  delay(flipTimer);
+//  // invert the reading
+//  int val12 = 1023 - analogRead(sensorPin1);
+//  int val22 = 1023 - analogRead(sensorPin2);
   
   int ldrVal = analogRead(ldrPin);
   
   sensors.requestTemperatures();
-float tempVal = sensors.getTempF(tempSensor1);
-float tempVal2 = sensors.getTempF(tempSensor2);
-//  float tempVal = sensors.getTempFByIndex(0);
-//float tempVal = 0;
-//  Serial.print(sensors.getTempCByIndex(0));
+  float tempVal = sensors.getTempF(tempSensor1);
+  float tempVal2 = sensors.getTempF(tempSensor2);
   
-  turnSensorOff();
+//  turnSensorOff();
   
   digitalWrite(led, LOW);
   //
-  reportLevels(average(val11,val12), average(val21, val22), ldrVal, tempVal, tempVal2);
+//  reportLevels(average(val11,val12), average(val21, val22), ldrVal, tempVal, tempVal2);
+  reportLevels(-1, -1, ldrVal, tempVal, tempVal2);
     
   delay(sleep);
 }
