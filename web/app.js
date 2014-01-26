@@ -34,7 +34,7 @@ var express = require('express')
 //     });
   serialport.list(function (err, ports) {
     ports.forEach(function(port) {
-        if (port.manufacturer.indexOf("Arduino") != -1 && serialPort == null) {
+        if (typeof port.manufacturer != 'undefined' && port.manufacturer.indexOf("Arduino") != -1 && serialPort == null) {
             serialPort = new SerialPort(port.comName, {
                 baudrate: 9600,
                 parser: serialport.parsers.readline("\n")
