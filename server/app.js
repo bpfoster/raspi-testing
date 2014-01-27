@@ -7,6 +7,7 @@ var serialport = require("serialport")
   
 MongoClient.connect('mongodb://'+config.mongoUsername+':'+config.mongoPassword+'@'+config.mongoHost+'/' + config.mongoDb, function(err, db) {
     if(err) throw err;
+    console.log("Connected to mongodb")
 
     var collection = db.collection('sensor_readings');
     
