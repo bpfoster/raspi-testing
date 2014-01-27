@@ -22,7 +22,7 @@ var config = require('./config')
           io.sockets.emit("dataUpdate",{
              date: sensorEvent.date,
              light: sensorEvent.lv,
-             temp1: sensorEvent.tmp1,
+             temp1: sensorEvent.tmp,
              temp2: sensorEvent.tmp2
           });
       }
