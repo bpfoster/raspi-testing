@@ -43,14 +43,15 @@
       if (!dataLocked) {
         dataLocked = true
         
+        
         data1 = []
         data2 = []
         data3 = []
         
         data.data.forEach(function(record){
-          data1.push({x: record.date, y: record.temp1})
-          data2.push({x: record.date, y: record.temp2})
-          data3.push({x: record.date, y: record.light})
+          data1.push({x: new Date(record.date), y: record.temp1})
+          data2.push({x: new Date(record.date), y: record.temp2})
+          data3.push({x: new Date(record.date), y: record.light})
         });
         
         redraw()
@@ -70,11 +71,11 @@
         data1.push({x: date, y: data.temp1})
         data2.push({x: date, y: data.temp2})
         data3.push({x: date, y: data.light})
-        if (data1.length > maxLength)
+        while (data1.length > maxLength)
           data1.shift()
-        if (data2.length > maxLength)
+        while (data2.length > maxLength)
           data2.shift()
-        if (data3.length > maxLength)
+        while (data3.length > maxLength)
           data3.shift()
         
         redraw()
