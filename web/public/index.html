@@ -25,10 +25,7 @@
     socket.on('connect', function(data){
     });
     
-    socket.on("dataRefresh", function(data){
-      console.log(data)
-    });
-      
+    
     
     var y1AxisDefaultDomain = {min: 40, max: 100}
     var y2AxisDefaultDomain = {min: 50, max: 1000}
@@ -37,47 +34,50 @@
     var data1 = []
     var data2 = []
     var data3 = []
+    var dataLocked = false;
+    
+    
+    socket.on("dataRefresh", function(data){
+      // TODO: Better handle data lock to not lose data
+      if (!dataLocked) {
+        dataLocked = true
+        
+        data1 = []
+        data2 = []
+        data3 = []
+        
+        data.data.forEach(function(record){
+          data1.push(x: record.date, y: record.temp1)
+          data2.push(x: record.date, y: record.temp2)
+          data3.push(x: record.date, y: record.light)
+        });
+        
+        redraw()
+        
+        dataLocked = false
+      }
+    });
+    
     socket.on('dataUpdate', function(data){
-      var date = new Date(data.date);
+      // TODO: Better handle data lock to not lose data
+      if (!dataLocked) {
+        dataLocked = true
+        
+        var date = new Date(data.date);
       
-      data1.push({x: date, y: data.temp1})
-      data2.push({x: date, y: data.temp2})
-      data3.push({x: date, y: data.light})
-      if (data1.length > maxLength)
-        data1.shift()
-      if (data2.length > maxLength)
-        data2.shift()
-      if (data3.length > maxLength)
-        data3.shift()
+        data1.push({x: date, y: data.temp1})
+        data2.push({x: date, y: data.temp2})
+        data3.push({x: date, y: data.light})
+        if (data1.length > maxLength)
+          data1.shift()
+        if (data2.length > maxLength)
+          data2.shift()
+        if (data3.length > maxLength)
+          data3.shift()
         
-      var d1minMax = findMinMax(data1)
-      var d2minMax = findMinMax(data2)
-      var d3minMax = findMinMax(data3)
-      var y1min = Math.min(d1minMax.min, d2minMax.min)
-      var y1max = Math.max(d1minMax.max, d2minMax.max)
-      var y1buffer = (y1max - y1min) * chartBuffer
-      y1min = Math.min(y1AxisDefaultDomain.min, y1min - y1buffer)
-      y1max = Math.max(y1AxisDefaultDomain.max, y1max + y1buffer)
-      var y2buffer = (d3minMax.max - d3minMax.min) * chartBuffer
-      var y2min = Math.min(y2AxisDefaultDomain.min, d3minMax.min - y2buffer)
-      var y2max = Math.max(y2AxisDefaultDomain.max, d3minMax.max + y2buffer)
-        
-      redraw([{
-          values: data1,
-          key: "Temp 1",
-          yAxis: 1,
-          type: "line"
-        },{
-          values: data2,
-          key: "Temp 2",
-          yAxis: 1,
-          type: "line"
-        },{
-          values: data3,
-          key: "Light",
-          yAxis: 2,
-          type: "line"
-        }], {min: y1min, max: y1max},{min: y2min, max: y2max})
+        redraw()
+        dataLocked = false
+      }
     });
     
     
@@ -124,6 +124,38 @@
 
       return chart;
     });
+    
+    
+    function redraw() {
+      var d1minMax = findMinMax(data1)
+      var d2minMax = findMinMax(data2)
+      var d3minMax = findMinMax(data3)
+      var y1min = Math.min(d1minMax.min, d2minMax.min)
+      var y1max = Math.max(d1minMax.max, d2minMax.max)
+      var y1buffer = (y1max - y1min) * chartBuffer
+      y1min = Math.min(y1AxisDefaultDomain.min, y1min - y1buffer)
+      y1max = Math.max(y1AxisDefaultDomain.max, y1max + y1buffer)
+      var y2buffer = (d3minMax.max - d3minMax.min) * chartBuffer
+      var y2min = Math.min(y2AxisDefaultDomain.min, d3minMax.min - y2buffer)
+      var y2max = Math.max(y2AxisDefaultDomain.max, d3minMax.max + y2buffer)
+        
+      redraw([{
+          values: data1,
+          key: "Temp 1",
+          yAxis: 1,
+          type: "line"
+        },{
+          values: data2,
+          key: "Temp 2",
+          yAxis: 1,
+          type: "line"
+        },{
+          values: data3,
+          key: "Light",
+          yAxis: 2,
+          type: "line"
+        }], {min: y1min, max: y1max},{min: y2min, max: y2max})
+    }
  
  
     function redraw(datum, y1minMax, y2minMax) {
