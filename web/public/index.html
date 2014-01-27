@@ -24,6 +24,10 @@
     var socket = io.connect(socketAddr);
     socket.on('connect', function(data){
     });
+    
+    socket.on("dataRefresh", function(data){
+      console.log(data)
+    });
       
     
     var y1AxisDefaultDomain = {min: 40, max: 100}

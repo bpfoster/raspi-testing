@@ -7,71 +7,10 @@ var config = require('./config')
   , path = require('path')
   , io = require('socket.io').listen(server)
   , spawn = require('child_process').spawn
-  // , serialport = require("serialport")
-  // , SerialPort = serialport.SerialPort
+  , MongoClient = require('mongodb').MongoClient
   , Redis = require("redis")
   , redisClient = Redis.createClient(config.redis.port, config.redis.host)
   
-  
-  redisClient.on("message", function(channel, message){
-      console.log("recieved redis event on " + channel)
-      if (channel == "dataEvent") {
-          
-          var sensorEvent = JSON.parse(message);
-          
-          io.sockets.emit("dataUpdate",{
-             date: sensorEvent.date,
-             light: sensorEvent.lv,
-             temp1: sensorEvent.tmp,
-             temp2: sensorEvent.tmp2
-          });
-      }
-  });
-  redisClient.subscribe("dataEvent")
-  
-  
-  // var serialPort = null
-  // serialport.list(function (err, ports) {
-  //   ports.forEach(function(port) {
-  //       if (typeof port.pnpId != 'undefined' && port.pnpId.indexOf("Arduino") != -1 && serialPort == null) {
-  //           serialPort = new SerialPort(port.comName, {
-  //               baudrate: 9600,
-  //               parser: serialport.parsers.readline("\n")
-  //           }, false);
-  //           
-  //           serialPort.open(function () {
-  //               console.log('serial open');
-  //           });
-  //           serialPort.on('data', function(data) {
-  //             console.log('data received: ' + data);
-  //     
-  //             var dataDate = new Date()
-  //             var dataPoints = data.split(",")
-  //             io.sockets.emit('dataUpdate',{
-  //                 date: dataDate,
-  //                 light: dataPoints[2].split(":")[1],
-  //                 temp1: dataPoints[3].split(":")[1],
-  //                 temp2: dataPoints[4].split(":")[1]
-  //             })
-  //           });
-  //       }
-  //   });
-  //   if (serialPort == null) {
-  //       throw "No Arduino Found!"
-  //   }
-  // });
-  
-  
-// serialPort.open(function () {
-//     console.log('serial open');
-//     // serialPort.on('data', function(data) {
-// //       console.log('data received: ' + data);
-// //     });
-//     // serialPort.write("ls\n", function(err, results) {
-//     //   console.log('err ' + err);
-//     //   console.log('results ' + results);
-//     // });
-//   });
 
   
 //Socket.io Config
@@ -103,5 +42,42 @@ server.listen(app.get('port'), function(){
 
 io.sockets.on('connection', function (socket) {
     console.log("Client connected")
+    
+    var mongoUri = 'mongodb://'+config.mongo.username+':'+config.mongo.password+'@'+config.mongo.host+'/' + config.mongo.db
+    console.log("Connecting to mongo at " + mongoUri)
+    MongoClient.connect(mongoUri, function(err, db) {
+      if(err) throw err;
+      console.log("Connected to mongodb")
+    
+      var collection = db.collection('sensor_readings');
+    
+      var initialData = []
+      collection.find({}).sort({"date": -1}).limit(200).each(function(err, doc){
+        initialData.unshift({
+          date: doc.date,
+          light: doc.lv,
+          temp1: doc.tmp,
+          temp2: doc.tmp2
+        })
+      });
+      
+      socket.emit("dataRefresh", {data: initialData})
+    });
 });
 
+
+
+redisClient.on("message", function(channel, message){
+  if (channel == "dataEvent") {
+          
+    var sensorEvent = JSON.parse(message);
+          
+    io.sockets.emit("dataUpdate",{
+      date: sensorEvent.date,
+      light: sensorEvent.lv,
+      temp1: sensorEvent.tmp,
+      temp2: sensorEvent.tmp2
+    });
+  }
+});
+redisClient.subscribe("dataEvent")
