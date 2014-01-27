@@ -50,18 +50,24 @@ io.sockets.on('connection', function (socket) {
       console.log("Connected to mongodb")
     
       var collection = db.collection('sensor_readings');
-    
-      var initialData = []
-      collection.find({}).sort({"date": -1}).limit(200).each(function(err, doc){
-        initialData.unshift({
-          date: doc.date,
-          light: doc.lv,
-          temp1: doc.tmp,
-          temp2: doc.tmp2
-        })
+
+
+      collection.find().sort({"date": -1}).limit(200).toArray(function(err, docs){
+        if (err) throw err;
+        
+        var initialData = []
+        
+        docs.forEach(function(doc) {
+          initialData.unshift({
+            date: doc.date,
+            light: doc.lv,
+            temp1: doc.tmp,
+            temp2: doc.tmp2
+          });
+        });
+        
+        socket.emit("dataRefresh", {data: initialData})
       });
-      
-      socket.emit("dataRefresh", {data: initialData})
     });
 });
 
