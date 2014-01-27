@@ -1,9 +1,16 @@
 var config = {}
 
 
-config.mongoUsername = ""
-config.mongoPassword = ""
-config.mongoHost = "ds027789.mongolab.com:27789"
-config.mongoDb = "raspi"
+config.mongo = {}
+
+config.mongo.username = ""
+config.mongopassword = ""
+config.mongo.host = "ds027789.mongolab.com:27789"
+config.mongo.db = "raspi"
+
+
+config.redis = {}
+config.redis.host = "localhost"
+config.redis.port = 6379
 
 module.exports = config;

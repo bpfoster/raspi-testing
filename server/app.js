@@ -1,11 +1,13 @@
-var serialport = require("serialport")
+var  config = require('./config')
+  , serialport = require("serialport")
   , SerialPort = serialport.SerialPort
   , MongoClient = require('mongodb').MongoClient
   , format = require('util').format
-  , config = require('./config')
+  , Redis = require("redis"),
+  , redisClient = Redis.createClient(config.redis.port, config.redis.host);
   
   
-var mongoUri = 'mongodb://'+config.mongoUsername+':'+config.mongoPassword+'@'+config.mongoHost+'/' + config.mongoDb
+var mongoUri = 'mongodb://'+config.mongo.username+':'+config.mongo.password+'@'+config.mongo.host+'/' + config.mongo.db
 console.log("Connecting to mongo at " + mongoUri)
 MongoClient.connect(mongoUri, function(err, db) {
     if(err) throw err;
@@ -37,7 +39,9 @@ MongoClient.connect(mongoUri, function(err, db) {
                 });
                 collection.insert(sensorData, function(err, docs){
                     if(err) throw err;
-                })
+                });
+                
+                redisClient.publish("dataEvent", sensorData)
               });
           }
       });
