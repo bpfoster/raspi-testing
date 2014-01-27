@@ -3,8 +3,8 @@ var  config = require('./config')
   , SerialPort = serialport.SerialPort
   , MongoClient = require('mongodb').MongoClient
   , format = require('util').format
-  , Redis = require("redis"),
-  , redisClient = Redis.createClient(config.redis.port, config.redis.host);
+  , Redis = require("redis")
+  , redisClient = Redis.createClient(config.redis.port, config.redis.host)
   
   
 var mongoUri = 'mongodb://'+config.mongo.username+':'+config.mongo.password+'@'+config.mongo.host+'/' + config.mongo.db
@@ -41,7 +41,7 @@ MongoClient.connect(mongoUri, function(err, db) {
                     if(err) throw err;
                 });
                 
-                redisClient.publish("dataEvent", sensorData)
+                redisClient.publish("dataEvent", JSON.stringify(sensorData))
               });
           }
       });

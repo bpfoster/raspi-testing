@@ -1,46 +1,63 @@
 
 
-var express = require('express')
+var config = require('./config')
+  , express = require('express')
   , app = express()  
   , server = require('http').createServer(app)
   , path = require('path')
   , io = require('socket.io').listen(server)
   , spawn = require('child_process').spawn
-  , serialport = require("serialport")
-  , SerialPort = serialport.SerialPort
+  // , serialport = require("serialport")
+  // , SerialPort = serialport.SerialPort
+  , Redis = require("redis")
+  , redisClient = Redis.createClient(config.redis.port, config.redis.host)
   
   
-  
-  var serialPort = null
-  serialport.list(function (err, ports) {
-    ports.forEach(function(port) {
-        if (typeof port.pnpId != 'undefined' && port.pnpId.indexOf("Arduino") != -1 && serialPort == null) {
-            serialPort = new SerialPort(port.comName, {
-                baudrate: 9600,
-                parser: serialport.parsers.readline("\n")
-            }, false);
-            
-            serialPort.open(function () {
-                console.log('serial open');
-            });
-            serialPort.on('data', function(data) {
-              console.log('data received: ' + data);
-      
-              var dataDate = new Date()
-              var dataPoints = data.split(",")
-              io.sockets.emit('dataUpdate',{
-                  date: dataDate,
-                  light: dataPoints[2].split(":")[1],
-                  temp1: dataPoints[3].split(":")[1],
-                  temp2: dataPoints[4].split(":")[1]
-              })
-            });
-        }
-    });
-    if (serialPort == null) {
-        throw "No Arduino Found!"
-    }
+  redisClient.on("message", function(channel, message){
+      if (channel == "dataEvent") {
+          
+          var sensorEvent = JSON.parse(message);
+          
+          io.sockets.emit("dataUpdate",{
+             date: sensorEvent.date;
+             light: sensorEvent.lv;
+             temp1: sensorEvent.tmp1;
+             temp2: sensorEvent.tmp2;
+          });
+      }
   });
+  
+  
+  // var serialPort = null
+  // serialport.list(function (err, ports) {
+  //   ports.forEach(function(port) {
+  //       if (typeof port.pnpId != 'undefined' && port.pnpId.indexOf("Arduino") != -1 && serialPort == null) {
+  //           serialPort = new SerialPort(port.comName, {
+  //               baudrate: 9600,
+  //               parser: serialport.parsers.readline("\n")
+  //           }, false);
+  //           
+  //           serialPort.open(function () {
+  //               console.log('serial open');
+  //           });
+  //           serialPort.on('data', function(data) {
+  //             console.log('data received: ' + data);
+  //     
+  //             var dataDate = new Date()
+  //             var dataPoints = data.split(",")
+  //             io.sockets.emit('dataUpdate',{
+  //                 date: dataDate,
+  //                 light: dataPoints[2].split(":")[1],
+  //                 temp1: dataPoints[3].split(":")[1],
+  //                 temp2: dataPoints[4].split(":")[1]
+  //             })
+  //           });
+  //       }
+  //   });
+  //   if (serialPort == null) {
+  //       throw "No Arduino Found!"
+  //   }
+  // });
   
   
 // serialPort.open(function () {

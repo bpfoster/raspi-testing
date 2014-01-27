@@ -4,7 +4,7 @@ var config = {}
 config.mongo = {}
 
 config.mongo.username = ""
-config.mongopassword = ""
+config.mongo.password = ""
 config.mongo.host = "ds027789.mongolab.com:27789"
 config.mongo.db = "raspi"
 
