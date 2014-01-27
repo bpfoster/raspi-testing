@@ -5,7 +5,9 @@ var serialport = require("serialport")
   , config = require('./config')
   
   
-MongoClient.connect('mongodb://'+config.mongoUsername+':'+config.mongoPassword+'@'+config.mongoHost+'/' + config.mongoDb, function(err, db) {
+var mongoUri = 'mongodb://'+config.mongoUsername+':'+config.mongoPassword+'@'+config.mongoHost+'/' + config.mongoDb
+console.log("Connecting to mongo at " + mongoUri)
+MongoClient.connect(mongoUri, function(err, db) {
     if(err) throw err;
     console.log("Connected to mongodb")
 
@@ -27,7 +29,7 @@ MongoClient.connect('mongodb://'+config.mongoUsername+':'+config.mongoPassword+'
                 console.log('data received: ' + data);
     
                 var dataDate = new Date()
-                var dataPoints = data.split(",")
+                var dataPoints = data.replace("\r","").replace("\n","").split(",")
                 var sensorData = {date: dataDate}
                 dataPoints.forEach(function(point){
                     var kv = point.split(":")
