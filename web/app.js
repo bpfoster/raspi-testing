@@ -14,18 +14,20 @@ var config = require('./config')
   
   
   redisClient.on("message", function(channel, message){
+      console.log("recieved redis event on " + channel)
       if (channel == "dataEvent") {
           
           var sensorEvent = JSON.parse(message);
           
           io.sockets.emit("dataUpdate",{
-             date: sensorEvent.date;
-             light: sensorEvent.lv;
-             temp1: sensorEvent.tmp1;
-             temp2: sensorEvent.tmp2;
+             date: sensorEvent.date,
+             light: sensorEvent.lv,
+             temp1: sensorEvent.tmp1,
+             temp2: sensorEvent.tmp2
           });
       }
   });
+  redisClient.subscribe("dataEvent")
   
   
   // var serialPort = null
