@@ -24,7 +24,7 @@ DeviceAddress tempSensor2 = {0x28, 0xD5, 0x70, 0xBD, 0x04, 0x00, 0x00, 0xCE};
 #define led 13
 
 int flipTimer = 1000;
-int sleep = 1000 * 60;
+long sleep = 1000L * 60L;
 
 void setup(){
   Serial.begin(9600);
