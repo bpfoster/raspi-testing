@@ -40,8 +40,18 @@ server.listen(app.get('port'), function(){
 
 
 
+var allClients = [];
+
 io.sockets.on('connection', function (socket) {
     console.log("Client connected")
+    allClients.push(socket);
+    socket.on('disconnect', function() {
+        console.log('Got disconnect!');
+
+        var i = allClients.indexOf(socket);
+        delete allClients[i];
+     });
+       
     
     var mongoUri = 'mongodb://'+config.mongo.username+':'+config.mongo.password+'@'+config.mongo.host+'/' + config.mongo.db
     console.log("Connecting to mongo at " + mongoUri)
@@ -76,14 +86,18 @@ io.sockets.on('connection', function (socket) {
 redisClient.on("message", function(channel, message){
   if (channel == "dataEvent") {
           
-    var sensorEvent = JSON.parse(message);
+    if (allClients.length > 0) {
+      var sensorEvent = JSON.parse(message);
           
-    io.sockets.emit("dataUpdate",{
-      date: sensorEvent.date,
-      light: sensorEvent.lv,
-      temp1: sensorEvent.tmp,
-      temp2: sensorEvent.tmp2
-    });
+      allClient.forEach(function(socket){
+        socket.emit("dataUpdate",{
+          date: sensorEvent.date,
+          light: sensorEvent.lv,
+          temp1: sensorEvent.tmp,
+          temp2: sensorEvent.tmp2
+        });
+      })
+    }
   }
 });
 redisClient.subscribe("dataEvent")
