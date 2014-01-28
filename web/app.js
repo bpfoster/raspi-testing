@@ -49,7 +49,7 @@ io.sockets.on('connection', function (socket) {
         console.log('Got disconnect!');
 
         var i = allClients.indexOf(socket);
-        delete allClients[i];
+        allClients.splice(i, 1)
      });
        
     
