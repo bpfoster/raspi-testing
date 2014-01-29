@@ -7,13 +7,13 @@ var  config = require('./config')
   , redisClient = Redis.createClient(config.redis.port, config.redis.host)
   
   
-var mongoUri = 'mongodb://'+config.mongo.username+':'+config.mongo.password+'@'+config.mongo.host+'/' + config.mongo.db
-console.log("Connecting to mongo at " + mongoUri)
-MongoClient.connect(mongoUri, function(err, db) {
+
+console.log("Connecting to mongo at " + config.mongo.uri)
+MongoClient.connect(config.mongo.uri, function(err, db) {
     if(err) throw err;
     console.log("Connected to mongodb")
 
-    var collection = db.collection('sensor_readings');
+    var collection = db.collection(config.mongo.collection);
     
     var serialPort = null
     serialport.list(function (err, ports) {
