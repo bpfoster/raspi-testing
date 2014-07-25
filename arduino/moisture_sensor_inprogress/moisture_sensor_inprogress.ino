@@ -1,37 +1,50 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
+#include "moisture_sensor.h"
 
-#define voltageFlipPin1 2
-#define voltageFlipPin2 3
+
+#define voltageFlipPin1 4
+#define voltageFlipPin2 5
 #define sensorPin1 0
-#define sensorPin2 1
 #define ldrPin 2
 
 
 // Data wire is plugged into pin 2 on the Arduino
-#define ONE_WIRE_BUS 2
+#define ONE_WIRE_BUS 3
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
 // Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensors(&oneWire);
 
-DeviceAddress tempSensor1 = {0x28, 0xC5, 0x44, 0xBD, 0x04, 0x00, 0x00, 0x0E};
-DeviceAddress tempSensor2 = {0x28, 0xD5, 0x70, 0xBD, 0x04, 0x00, 0x00, 0xCE};
+DeviceAddress tempSensor1 = {0x28, 0xD5, 0x70, 0xBD, 0x04, 0x00, 0x00, 0xCE}; // first sensor on current pinout 
+DeviceAddress tempSensor2 = {0x28, 0xC5, 0x44, 0xBD, 0x04, 0x00, 0x00, 0x0E};  // second sensor on current pinout
 
 
 #define led 13
 
-int flipTimer = 1000;
-long sleep = 1000L * 60L;
+const int flipTimer = 1000;
+
+const long sleepBetweenSensorReadings = 1000L * 1L;
+const long sleepBetweenValueReporting = 1000L * 10L;
+const int numReadingsBeforeReport = sleepBetweenValueReporting / sleepBetweenSensorReadings;
+int timesSlept = 0;
+
+int ldrReadings[numReadingsBeforeReport];
+float temp1Readings[numReadingsBeforeReport];
+float temp2Readings[numReadingsBeforeReport];
+
+MoistureSensor ms1(voltageFlipPin1, voltageFlipPin2, sensorPin1);
+
+// Header constants
+const String HEADER_VALUES = "[V]";
+const String HEADER_DEBUG = "[DEBUG]";
 
 void setup(){
   Serial.begin(9600);
-//  pinMode(voltageFlipPin1, OUTPUT);
-//  pinMode(voltageFlipPin2, OUTPUT);
-//  pinMode(sensorPin1, INPUT);
-//  pinMode(sensorPin2, INPUT);
+  
+  ms1.initialize();
   
   pinMode(led, OUTPUT);
   digitalWrite(led, LOW);
@@ -42,20 +55,33 @@ void setup(){
   sensors.setResolution(tempSensor2, 10);
 }
 
-
-void setSensorPolarity(boolean flip){
-  if(flip){
-    digitalWrite(voltageFlipPin1, HIGH);
-    digitalWrite(voltageFlipPin2, LOW);
-  }else{
-    digitalWrite(voltageFlipPin1, LOW);
-    digitalWrite(voltageFlipPin2, HIGH);
+float getAverage(float values[]) {
+  // TODO: This doesn't work on array values passed as args
+  //int length = sizeof(values)/sizeof(values[0]);
+  
+  int length = numReadingsBeforeReport;
+  
+  
+  float value = 0.0;
+  for( int i = 0; i < length; i++) {
+    value = value + values[i];
   }
+  
+  return value / length;
 }
 
-void turnSensorOff() {
-  digitalWrite(voltageFlipPin1, LOW);
-  digitalWrite(voltageFlipPin2, LOW);
+int getAverage(int values[]){
+  // TODO: This doesn't work on array values passed as args
+//  int length = sizeof(*values)/sizeof(values[0]);
+  
+  int length = numReadingsBeforeReport;
+  
+  int value = 0;
+  for(int i = 0; i < length; i++) {
+    value = value + values[i];
+  }
+  
+  return value / length;
 }
 
 
@@ -64,51 +90,55 @@ void loop(){
   //
   digitalWrite(led, HIGH);
   
-//  setSensorPolarity(true);
-//  delay(flipTimer);
-//  int val11 = analogRead(sensorPin1);
-//  int val21 = analogRead(sensorPin2);
-//  delay(flipTimer);  
-//  setSensorPolarity(false);
-//  delay(flipTimer);
-//  // invert the reading
-//  int val12 = 1023 - analogRead(sensorPin1);
-//  int val22 = 1023 - analogRead(sensorPin2);
-  
-  int ldrVal = analogRead(ldrPin);
+  ldrReadings[timesSlept] = analogRead(ldrPin);
   
   sensors.requestTemperatures();
-  float tempVal = sensors.getTempF(tempSensor1);
-  float tempVal2 = sensors.getTempF(tempSensor2);
+  temp1Readings[timesSlept] = sensors.getTempF(tempSensor1);
+  temp2Readings[timesSlept] = sensors.getTempF(tempSensor2);
   
-//  turnSensorOff();
+  Serial.print("[DEBUG] ldr: ");
+  Serial.println(ldrReadings[timesSlept]);
+  Serial.print("[DEBUG] t1: ");
+  Serial.println(temp1Readings[timesSlept]);
+  Serial.print("[DEBUG] t2: ");
+  Serial.println(temp2Readings[timesSlept]);
+  
+//  Serial.println(ldrReadings[timesSlept]);
   
   digitalWrite(led, LOW);
-  //
-//  reportLevels(average(val11,val12), average(val21, val22), ldrVal, tempVal, tempVal2);
-  reportLevels(-1, -1, ldrVal, tempVal, tempVal2);
-    
-  delay(sleep);
-}
-
-int average(int val1, int val2) {
-  return (val1 + val2) / 2;
-}
-
-void reportLevels(int ms1,int ms2, int ldrVal, float tempVal, float tempVal2){
   
-  String msg = "ms1:";
-  msg += ms1;
-  msg += ",ms2:";
-  msg += ms2;
-  msg += ",lv:";
-  msg += ldrVal;
-  msg += ",tmp:";
-  Serial.print(msg);
+  if (timesSlept + 1 == numReadingsBeforeReport) {
+    // get moisture readings
+    int v1 = ms1.readValue();
+    
+    reportLevels(v1, -1, getAverage(ldrReadings), getAverage(temp1Readings), getAverage(temp2Readings));
+   
+    timesSlept = -1; 
+  }
+  
+  delay(sleepBetweenSensorReadings);
+  timesSlept = timesSlept + 1;
+}
+
+
+void debug(String message) {
+  Serial.print(HEADER_DEBUG);
+  Serial.println(message); 
+}
+
+
+void reportLevels(int ms1, int ms2, int ldrVal, float tempVal, float tempVal2){
+  Serial.print(HEADER_VALUES);
+  Serial.print("ms1:");
+  Serial.print(ms1);
+  Serial.print(",ms2:");
+  Serial.print(ms2);
+  Serial.print(",lv:");
+  Serial.print(ldrVal);
+  Serial.print(",tmp:");
   Serial.print(tempVal);
   Serial.print(",tmp2:");
   Serial.print(tempVal2);
   Serial.println("");
-
 }
 

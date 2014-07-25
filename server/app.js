@@ -28,20 +28,22 @@ MongoClient.connect(config.mongo.uri, function(err, db) {
                   console.log('serial open');
               });
               serialPort.on('data', function(data) {
-                console.log('data received: ' + data);
+                if(data.indexOf("[V]") == 0) {
+                  console.log('data received: ' + data);
     
-                var dataDate = new Date()
-                var dataPoints = data.replace("\r","").replace("\n","").split(",")
-                var sensorData = {date: dataDate}
-                dataPoints.forEach(function(point){
-                    var kv = point.split(":")
-                    sensorData[kv[0]] = kv[1]
-                });
-                collection.insert(sensorData, function(err, docs){
-                    if(err) throw err;
-                });
+                  var dataDate = new Date()
+                  var dataPoints = data.replace("[V]", "").replace("\r","").replace("\n","").split(",")
+                  var sensorData = {date: dataDate}
+                  dataPoints.forEach(function(point){
+                      var kv = point.split(":")
+                      sensorData[kv[0]] = kv[1]
+                  });
+                  collection.insert(sensorData, function(err, docs){
+                      if(err) throw err;
+                  });
                 
-                redisClient.publish("dataEvent", JSON.stringify(sensorData))
+                  redisClient.publish("dataEvent", JSON.stringify(sensorData))
+                }
               });
           }
       });
