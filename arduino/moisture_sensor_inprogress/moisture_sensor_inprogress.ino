@@ -12,7 +12,6 @@
 
 // Data wire is plugged into pin 2 on the Arduino
 #define ONE_WIRE_BUS 3
-
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
 // Pass our oneWire reference to Dallas Temperature.
@@ -26,8 +25,8 @@ DeviceAddress tempSensor2 = {0x28, 0xC5, 0x44, 0xBD, 0x04, 0x00, 0x00, 0x0E};  /
 
 const int flipTimer = 1000;
 
-const long sleepBetweenSensorReadings = 1000L * 1L;
-const long sleepBetweenValueReporting = 1000L * 10L;
+const long sleepBetweenSensorReadings = 1000L * 60L;
+const long sleepBetweenValueReporting = 1000L * 600L;
 const int numReadingsBeforeReport = sleepBetweenValueReporting / sleepBetweenSensorReadings;
 int timesSlept = 0;
 
@@ -39,7 +38,6 @@ MoistureSensor ms1(voltageFlipPin1, voltageFlipPin2, sensorPin1);
 
 // Header constants
 const String HEADER_VALUES = "[V]";
-const String HEADER_DEBUG = "[DEBUG]";
 
 void setup(){
   Serial.begin(9600);
@@ -86,8 +84,6 @@ int getAverage(int values[]){
 
 
 void loop(){
-  
-  //
   digitalWrite(led, HIGH);
   
   ldrReadings[timesSlept] = analogRead(ldrPin);
@@ -95,17 +91,6 @@ void loop(){
   sensors.requestTemperatures();
   temp1Readings[timesSlept] = sensors.getTempF(tempSensor1);
   temp2Readings[timesSlept] = sensors.getTempF(tempSensor2);
-  
-  Serial.print("[DEBUG] ldr: ");
-  Serial.println(ldrReadings[timesSlept]);
-  Serial.print("[DEBUG] t1: ");
-  Serial.println(temp1Readings[timesSlept]);
-  Serial.print("[DEBUG] t2: ");
-  Serial.println(temp2Readings[timesSlept]);
-  
-//  Serial.println(ldrReadings[timesSlept]);
-  
-  digitalWrite(led, LOW);
   
   if (timesSlept + 1 == numReadingsBeforeReport) {
     // get moisture readings
@@ -115,16 +100,12 @@ void loop(){
    
     timesSlept = -1; 
   }
+  digitalWrite(led, LOW);
   
   delay(sleepBetweenSensorReadings);
   timesSlept = timesSlept + 1;
 }
 
-
-void debug(String message) {
-  Serial.print(HEADER_DEBUG);
-  Serial.println(message); 
-}
 
 
 void reportLevels(int ms1, int ms2, int ldrVal, float tempVal, float tempVal2){

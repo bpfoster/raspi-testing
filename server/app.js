@@ -3,9 +3,9 @@ var  config = require('./config')
   , SerialPort = serialport.SerialPort
   , MongoClient = require('mongodb').MongoClient
   , format = require('util').format
+  , request = require('request')
   , Redis = require("redis")
   , redisClient = Redis.createClient(config.redis.port, config.redis.host)
-  
   
 
 console.log("Connecting to mongo at " + config.mongo.uri)
@@ -41,6 +41,18 @@ MongoClient.connect(config.mongo.uri, function(err, db) {
                   collection.insert(sensorData, function(err, docs){
                       if(err) throw err;
                   });
+                  
+                  request.post(
+                    'https://dweet.io:443/dweet/for/jade7%7Bhamper',
+                    dataPoints,
+                    function(error,response,body) {
+                      if (!error && response.statusCode == 200) {
+                        console.log(body)
+                      } else {
+                        console.log("ERROR! " + error)
+                      }
+                    }
+                  );
                 
                   redisClient.publish("dataEvent", JSON.stringify(sensorData))
                 }
