@@ -42,17 +42,19 @@ MongoClient.connect(config.mongo.uri, function(err, db) {
                       if(err) throw err;
                   });
                   
-                  request.post(
-                    'https://dweet.io:443/dweet/for/jade7%7Bhamper',
-                    dataPoints,
-                    function(error,response,body) {
-                      if (!error && response.statusCode == 200) {
-                        console.log(body)
-                      } else {
-                        console.log("ERROR! " + error)
-                      }
+                  request.post({
+                    uri:'https://dweet.io:443/dweet/for/jade7%7Bhamper',
+                    body:JSON.stringify(sensorData),
+                    headers:{
+                      'Content-Type':'application/json'
                     }
-                  );
+                  }, function(error,response,body) {
+                    if (!error && response.statusCode == 200) {
+                      console.log(body)
+                    } else {
+                      console.log("ERROR! " + error)
+                    }
+                  });
                 
                   redisClient.publish("dataEvent", JSON.stringify(sensorData))
                 }
