@@ -8,6 +8,7 @@
     "dependencies": {
         "serialport":"",
         "mongodb":"",
-        "redis": ""
+        "redis": "",
+	"request":""
     }
 }
