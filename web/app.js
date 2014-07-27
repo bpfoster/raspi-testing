@@ -60,8 +60,10 @@ io.sockets.on('connection', function (socket) {
     
       var collection = db.collection(config.mongo.collection);
 
+      var dateQuery = new Date();
+      dateQuery.setHours( dateQuery.getHours() - 24 );
 
-      collection.find().sort({"date": -1}).limit(200).toArray(function(err, docs){
+      collection.find({"date":{"$gte": dateQuery}}).sort({"date": -1}).toArray(function(err, docs){
         if (err) throw err;
         
         var initialData = []
@@ -93,7 +95,8 @@ redisClient.on("message", function(channel, message){
           date: sensorEvent.date,
           light: sensorEvent.lv,
           temp1: sensorEvent.tmp,
-          temp2: sensorEvent.tmp2
+          temp2: sensorEvent.tmp2,
+          ms1: sensorEvent.ms1
         });
       })
     }
