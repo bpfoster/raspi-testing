@@ -33,6 +33,7 @@ int timesSlept = 0;
 int ldrReadings[numReadingsBeforeReport];
 float temp1Readings[numReadingsBeforeReport];
 float temp2Readings[numReadingsBeforeReport];
+int ms1Readings[numReadingsBeforeReport];
 
 MoistureSensor ms1(voltageFlipPin1, voltageFlipPin2, sensorPin1);
 
@@ -91,12 +92,10 @@ void loop(){
   sensors.requestTemperatures();
   temp1Readings[timesSlept] = sensors.getTempF(tempSensor1);
   temp2Readings[timesSlept] = sensors.getTempF(tempSensor2);
+  ms1Readings[timesSlept] = ms1.readValue();
   
-  if (timesSlept + 1 == numReadingsBeforeReport) {
-    // get moisture readings
-    int v1 = ms1.readValue();
-    
-    reportLevels(v1, -1, getAverage(ldrReadings), getAverage(temp1Readings), getAverage(temp2Readings));
+  if (timesSlept + 1 == numReadingsBeforeReport) {    
+    reportLevels(getAverage(ms1Readings), -1, getAverage(ldrReadings), getAverage(temp1Readings), getAverage(temp2Readings));
    
     timesSlept = -1; 
   }
